@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fake Job Posting Detection - ML Project Report</title>
+<style>
+  /* ===== Basic page setup ===== */
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #ffffff;
+    color: #222222;
+    max-width: 850px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+  }
+
+  /* ===== Header ===== */
+  .header {
+    text-align: center;
+    padding: 30px 0;
+    border-bottom: 3px solid #2c6e91;
+    margin-bottom: 30px;
+  }
+
+  .header h1 {
+    color: #2c6e91;
+    margin-bottom: 10px;
+  }
+
+  .header p {
+    color: #555555;
+    font-size: 15px;
+  }
+
+  /* ===== Section styling ===== */
+  h2 {
+    color: #2c6e91;
+    border-bottom: 2px solid #dddddd;
+    padding-bottom: 8px;
+    margin-top: 40px;
+  }
+
+  h3 {
+    color: #333333;
+    margin-top: 20px;
+  }
+
+  section {
+    margin-bottom: 40px;
+  }
+
+  /* ===== Stat boxes ===== */
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: 20px 0;
+  }
+
+  .stat-box {
+    background-color: #f2f7fa;
+    border: 1px solid #cfe3ee;
+    border-radius: 6px;
+    padding: 15px 20px;
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .stat-box .number {
+    font-size: 26px;
+    font-weight: bold;
+    color: #2c6e91;
+  }
+
+  .stat-box .label {
+    font-size: 13px;
+    color: #666666;
+    margin-top: 5px;
+  }
+
+  /* ===== Images ===== */
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 15px 0;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+  }
+
+  /* ===== Tables ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+  }
+
+  th, td {
+    border: 1px solid #dddddd;
+    padding: 8px 12px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #2c6e91;
+    color: white;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .best-model {
+    background-color: #e3f4e1 !important;
+    font-weight: bold;
+  }
+
+  /* ===== Lists ===== */
+  ul {
+    padding-left: 22px;
+  }
+
+  li {
+    margin-bottom: 8px;
+  }
+
+  /* ===== Word tags ===== */
+  .word-tag {
+    display: inline-block;
+    background-color: #eeeeee;
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin: 3px;
+    font-family: "Courier New", monospace;
+    font-size: 13px;
+  }
+
+  .word-tag.fraud {
+    background-color: #fbe0df;
+    color: #a4342c;
+  }
+
+  .word-tag.real {
+    background-color: #dcf0e3;
+    color: #256b45;
+  }
+
+  /* ===== Highlight boxes ===== */
+  .finding-box {
+    background-color: #fff8e1;
+    border-left: 4px solid #e0a800;
+    padding: 12px 16px;
+    margin: 15px 0;
+  }
+
+  .example-box {
+    background-color: #f7f7f7;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+    padding: 15px;
+    margin: 12px 0;
+  }
+
+  .verdict {
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  .verdict.fraud {
+    background-color: #f8d7da;
+    color: #842029;
+  }
+
+  .verdict.real {
+    background-color: #d1e7dd;
+    color: #0f5132;
+  }
+
+  /* ===== Footer ===== */
+  footer {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid #dddddd;
+    color: #888888;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===================== HEADER ===================== -->
+  <div class="header">
+    <h1>Fake Job Posting Detection</h1>
+    <p>Machine Learning Project Report</p>
+    <p>Using TF-IDF text vectorization and classification models to detect fraudulent job postings</p>
+  </div>
+
+  <!-- ===================== INTRO / OVERVIEW ===================== -->
+  <section>
+    <h2>1. Project Overview</h2>
+    <p>
+      This project uses machine learning to identify fraudulent job postings by analyzing both the text
+      content (job description, requirements, company profile) and structured metadata (employment type,
+      required experience, etc.) of each posting. The dataset used is the EMSCAD "Real or Fake Job Posting"
+      dataset.
+    </p>
+
+    <div class="stats-row">
+      <div class="stat-box">
+        <div class="number">17,880</div>
+        <div class="label">Total Postings</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">866</div>
+        <div class="label">Fraudulent Postings</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">4.8%</div>
+        <div class="label">Fraud Rate</div>
+      </div>
+      <div class="stat-box">
+        <div class="number">0.70</div>
+        <div class="label">Best Model F1-Score</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DATA CLEANING ===================== -->
+  <section>
+    <h2>2. Data Cleaning</h2>
+    <p>
+      Several columns had a large amount of missing data. The chart below shows the percentage of missing
+      values for each column.
+    </p>
+    <img src="assets/missing.png" alt="Chart showing percentage of missing values per column">
+
+    <p>Based on this, the following cleaning steps were applied:</p>
+    <ul>
+      <li><strong>salary_range</strong> was dropped entirely (84% missing - too sparse to be useful)</li>
+      <li>Missing text fields (description, requirements, benefits, company_profile) were filled with empty strings</li>
+      <li>Missing categorical fields (department, industry, etc.) were filled with the label "Unknown"</li>
+    </ul>
+  </section>
+
+  <!-- ===================== TEXT ANALYSIS ===================== -->
+  <section>
+    <h2>3. Text Analysis</h2>
+    <h3>3.1 Posting Length</h3>
+    <p>
+      Fraudulent postings tend to be shorter than real ones, likely because scammers write vague,
+      low-effort postings while real companies give more detail.
+    </p>
+    <img src="assets/textlen.png" alt="Boxplot comparing word count of real vs fraudulent postings">
+    <p>Median word count: <strong>372 words</strong> (real) vs <strong>243 words</strong> (fraudulent)</p>
+
+    <h3>3.2 Common Words</h3>
+    <p>After training the model, we can look at which words push a prediction toward each class:</p>
+
+    <p><strong>Top words signaling FRAUD:</strong></p>
+    <div>
+      <span class="word-tag fraud">aptitude</span>
+      <span class="word-tag fraud">money</span>
+      <span class="word-tag fraud">earn</span>
+      <span class="word-tag fraud">financing</span>
+      <span class="word-tag fraud">link</span>
+      <span class="word-tag fraud">email</span>
+      <span class="word-tag fraud">signing</span>
+    </div>
+
+    <p><strong>Top words signaling REAL:</strong></p>
+    <div>
+      <span class="word-tag real">team</span>
+      <span class="word-tag real">companies</span>
+      <span class="word-tag real">client</span>
+      <span class="word-tag real">digital</span>
+      <span class="word-tag real">growing</span>
+      <span class="word-tag real">sector</span>
+      <span class="word-tag real">english</span>
+    </div>
+  </section>
+
+  <!-- ===================== STRUCTURED FEATURES ===================== -->
+  <section>
+    <h2>4. Structured Features</h2>
+    <p>
+      Besides text, a few simple yes/no fields turned out to be strong indicators of fraud:
+    </p>
+    <img src="assets/structured.png" alt="Bar charts of fraud rate by telecommuting, logo, and screening questions">
+
+    <ul>
+      <li>Postings <strong>without a company logo</strong> had a 15.9% fraud rate, vs only 2.0% for postings with one (about 8x higher)</li>
+      <li>Postings <strong>without screening questions</strong> had a 6.8% fraud rate, vs 2.8% for postings with questions</li>
+      <li>Postings <strong>offering remote work</strong> had a higher fraud rate (8.3%) than non-remote postings (4.7%)</li>
+    </ul>
+  </section>
+
+  <!-- ===================== MODEL COMPARISON ===================== -->
+  <section>
+    <h2>5. Model Comparison</h2>
+    <p>
+      Two classification models were trained on the combined text (TF-IDF) and structured features:
+      Logistic Regression and Naive Bayes.
+    </p>
+
+    <table>
+      <tr>
+        <th>Model</th>
+        <th>Accuracy</th>
+        <th>Precision</th>
+        <th>Recall</th>
+        <th>F1-Score</th>
+      </tr>
+      <tr class="best-model">
+        <td>Logistic Regression</td>
+        <td>0.963</td>
+        <td>0.574</td>
+        <td>0.902</td>
+        <td>0.701</td>
+      </tr>
+      <tr>
+        <td>Naive Bayes</td>
+        <td>0.958</td>
+        <td>0.592</td>
+        <td>0.428</td>
+        <td>0.497</td>
+      </tr>
+    </table>
+
+    <img src="assets/modelcompare.png" alt="Bar chart comparing model metrics">
+
+    <div class="finding-box">
+      <strong>Why Logistic Regression won:</strong> It caught about 90% of fraudulent postings (recall),
+      compared to only 43% for Naive Bayes. For fraud detection, missing real fraud cases is usually worse
+      than a few false alarms, so the higher recall makes Logistic Regression the better choice here.
+    </div>
+
+    <h3>Confusion Matrix (Logistic Regression)</h3>
+    <img src="assets/confusion.png" alt="Confusion matrix for logistic regression model">
+    <ul>
+      <li>156 out of 173 fraudulent postings were correctly identified</li>
+      <li>116 real postings were incorrectly flagged as fraud (false positives)</li>
+      <li>17 fraudulent postings were missed (false negatives)</li>
+    </ul>
+  </section>
+
+  <!-- ===================== PREPROCESSING IMPACT ===================== -->
+  <section>
+    <h2>6. Does Text Cleaning Actually Help?</h2>
+    <p>
+      To test whether manually cleaning the text (removing punctuation, HTML, lowercasing) actually
+      improved results, the same model was also trained on the raw, uncleaned text.
+    </p>
+    <img src="assets/preprocessing.png" alt="Bar chart comparing cleaned vs uncleaned text performance">
+
+    <div class="finding-box">
+      <strong>Finding:</strong> Surprisingly, the uncleaned text performed slightly better
+      (F1 = 0.709 vs 0.701). This is likely because TF-IDF already lowercases text and removes common
+      stop words automatically, so our manual cleaning step didn't add much extra value. This shows that
+      preprocessing assumptions should be tested rather than assumed.
+    </div>
+  </section>
+
+  <!-- ===================== DEMO ===================== -->
+  <section>
+    <h2>7. Testing the Model on New Postings</h2>
+    <p>The trained model was tested on two new job postings it had never seen before:</p>
+
+    <div class="example-box">
+      <p><em>"Earn money from home! No experience needed, just sign up and start earning today. Send your info via email to get started. Unlimited earning potential!"</em></p>
+      <p>Prediction: <span class="verdict fraud">FRAUDULENT</span> &nbsp; (confidence: 99.27%)</p>
+    </div>
+
+    <div class="example-box">
+      <p><em>"We are seeking a Software Engineer to join our growing team, collaborating with product managers and designers to build scalable solutions for our clients. Bachelor's degree required, 3+ years Python experience."</em></p>
+      <p>Prediction: <span class="verdict real">REAL</span> &nbsp; (fraud probability: 0.29%)</p>
+    </div>
+  </section>
+
+  <!-- ===================== LIMITATIONS ===================== -->
+  <section>
+    <h2>8. Limitations</h2>
+    <ul>
+      <li><strong>Class imbalance:</strong> Only 4.8% of postings are fraudulent, so even with balanced class weighting, the model still produces some false positives. In a real system, flagged postings should go to human review rather than being auto-rejected.</li>
+      <li><strong>Vocabulary can change over time:</strong> The TF-IDF vocabulary is fixed based on training data. Scam language evolves, so the model would need retraining on new data periodically.</li>
+      <li><strong>Structured features can be faked:</strong> A scammer could easily add a logo or screening questions to avoid detection, since these are easy to fake.</li>
+      <li><strong>English-only:</strong> The model was trained only on English text and may not work well on postings in other languages.</li>
+    </ul>
+  </section>
+
+  <!-- ===================== SUMMARY ===================== -->
+  <section>
+    <h2>9. Summary</h2>
+    <p>
+      This project built a fraud detection system for job postings by combining TF-IDF text features
+      with structured metadata. Logistic Regression outperformed Naive Bayes, mainly due to better recall.
+      Simple structural signals (especially having a company logo) turned out to be strong predictors on
+      their own. Text cleaning did not meaningfully improve results in this case, showing the importance of
+      testing preprocessing choices rather than assuming they help. Overall, the model performs well at
+      catching fraudulent postings, though it should be used to assist human reviewers rather than to
+      automatically reject postings.
+    </p>
+  </section>
+
+  <footer>
+    <p>Fake Job Posting Detection - Machine Learning Project</p>
+    <p>Dataset: EMSCAD (17,880 job postings) | Models: Logistic Regression, Naive Bayes | Text Vectorization: TF-IDF</p>
+  </footer>
+
+</body>
+</html>
